@@ -18,8 +18,12 @@ if [ $? -ne 0 ]; then
   echo "ERROR: No se encuentra valgrind."
   exit 1
 fi
-valgrind --show-reachable=yes --leak-check=full --error-exitcode=1 ./tester
 
+valgrind --show-reachable=yes --leak-check=full --error-exitcode=1 ./tester
+if [ $? -ne 0 ]; then
+  echo "  **Error de memoria"
+  exit 1
+fi
 
 echo " "
 echo "**Corriendo diferencias con la catedra" 

@@ -32,11 +32,28 @@ cmp(tix,taaa) -> -1
 cmp(tix,tbb) -> -1
 cmp(tix,tix) -> 0
 ===== Document
-{4, hola
-, }
-{81, Perro
-, }
-cmp 1
+{, 4, hola
+, 5}
+{, 81, Perro
+, 88}
+cmp -1
 cmp -1
 cmp 0
 cmp 0
+{, 4, hola
+, }
+{, 81, Perro
+, }
+===== List
+==> listAdd
+[]
+[]
+==> listRemove
+[]
+===== Tree
+
+
+
+
+
+

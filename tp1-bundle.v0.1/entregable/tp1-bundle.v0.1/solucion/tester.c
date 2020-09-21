@@ -105,16 +105,20 @@ void test_list(FILE *pfile) {
     listDelete(l1);
 }
 
+//,TypeFloat,&(dataF)
+
 /** Document **/
 void test_document(FILE *pfile) {
     fprintf(pfile,"===== Document\n");
     int dataI = 4;
+    int dataII = 5;
     float dataF = 0.43f;
-    document_t* a1 = docNew(3,TypeInt,&(dataI),TypeString,"hola",TypeFloat,&(dataF));
+    document_t* a1 = docNew(4,TypeFloat,&(dataF) ,TypeInt,&(dataI),TypeString,"hola", TypeInt,&(dataII));
     docPrint(a1, pfile); fprintf(pfile,"\n");
     dataI = 81;
+    dataII = 88;
     dataF = 3.772f;
-    document_t* a2 = docNew(3,TypeInt,&(dataI),TypeString,"Perro",TypeFloat,&(dataF));
+    document_t* a2 = docNew(4,TypeFloat,&(dataF) ,TypeInt,&(dataI),TypeString,"Perro", TypeInt,&(dataII));
     docPrint(a2, pfile); fprintf(pfile,"\n");
     fprintf(pfile,"cmp %i\n",docCmp(a1, a2));
     fprintf(pfile,"cmp %i\n",docCmp(a2, a1));
