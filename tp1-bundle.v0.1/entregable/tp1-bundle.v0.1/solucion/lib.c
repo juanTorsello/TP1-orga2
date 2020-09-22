@@ -77,7 +77,9 @@ float* floatClone(float* a);
 
 void floatDelete(float* a);
 
-void floatPrint(float* a, FILE *pFile);
+void floatPrint(float* a, FILE *pFile){
+  fprintf(pFile, "%f",*a);
+}
 
 /* String */
 

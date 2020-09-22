@@ -89,9 +89,6 @@ floatDelete:
   ret
 
 
-floatPrint:
-  ret
-
 ;*** String ***
 
 strClone:
@@ -99,24 +96,30 @@ strClone:
   ; armo stackframe
   push rbp
   mov rbp,rsp
+  push r12
+  push r13
+  push r14
 
   mov r13, rdi  ;guardo la posicion donde arranca mi parametro
   ; ya tengo en rdi donde arranca mi string para pasarselo a strLen
   call strLen  ; devuelve en rax el la cantidad de bytes que tengo que reservar
   mov rdi, rax ; lo paso a rdi para despues llamar a malloc
   call malloc ;tengo en rax el puntero que apunta al arranque de la memoria resevada
-  mov r8, rax ; no quiero modificar rax asi ya lo tengo apuntando al arranque del string que deveuelvo
+  mov r12, rax ; no quiero modificar rax asi ya lo tengo apuntando al arranque del string que deveuelvo
 .ciclo:
   cmp byte [r13], 0 ; l ; NOOO FUNCA
   je .fin
-  mov r9B, [r13] ;r13 apunta al arranque del string que recibo como parametro
-  mov [rax], r9B
+  mov r14B, [r13] ;r13 apunta al arranque del string que recibo como parametro
+  mov [rax], r14B
   inc r13
   inc rax;
   jmp .ciclo
 
 .fin:
-  mov rax, r8;
+  mov rax, r12;
+  pop r14
+  pop r13
+  pop r12
   pop  rbp
   ret
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -240,74 +243,6 @@ strDelete:
 
 extern getCloneFunction
 extern intClone
-;
-; %define offset_type 0
-; %define offset_data_ptr 8
-; %define offset_doc_elem 8
-; %define bytesBlockElement 16
-;
-; docClone:
-;   ; document_t* a -> RDI
-;   ;armo stackframe
-;   push rbp
-;   mov rbp,rsp
-;
-;   %define document_original_ptr rdi
-;   %define document_size [document_original_ptr]
-;
-;   ; creamos arreglo
-;   mov rax , document_size ; ver si anda, sino seria mov R_aux [document_size] y luego mov rdi, R_aux * 16
-;   mov r8, bytesBlockElement
-;   mul r8 ; mul  cx        ; supuestamente hace rax = r8 * rax
-;   mov rdi, rax ; paso el document_size * 16 a rdi para el malloc
-;   call malloc
-;   ;rax: puntero al vector nuevo de document_elementos
-;   %define document_elem_values rax
-;
-;   ;armar el document_t nuevo
-;   mov rdi, bytesBlockElement
-;   call malloc ; returna rax:
-;   %define document_clone_ptr rax
-;
-;   ; Ya tenemos toda la memoria solicitada
-;   ; volcado de data a document:
-;   mov document_clone_ptr, document_size
-;   mov [document_clone_ptr + 8], document_elem_values ; ver si anda el + 8
-;
-;   ; volcado de data a los document elem:
-;   xor rcx, rcx ; RCX contador del vector (la "i" de nuestro querido for)
-;   mov r9, document_clone_ptr  ; CUIDADO A VER SI VA CON O SIN [], ahora creeomos que va sin, pero todo puede cambiar
-; .ciclo:
-;
-;   cmp rcx, document_size ; ACA QUEREMOS COMPARAR LOS 4 BYTES DE RCX con document_size
-;   je .fin
-;
-;   ;me paro en el type_t del r9 que estamos viendo
-;   mov rdi, r9 + offset_type    ; VER SI ES VALIDA ESTA NOTACION, offset_type es 0, pero tenemos estilo
-;   call intClone
-;   ;;;;;call getCloneFunction;
-;   ; rax devuelve el puntero a la funcion correspondiente
-;   ; posiciono rdi en el puntero al dato del r9 correspondiente
-;   ;;;;mov rdi, [document_original_ptr + offset_data_ptr]
-;   ;;;;call rax    ; ver si vale
-;   ; ahora en rax tenemos el puntero al clone
-;   ; pongo ese puntero en el data elem correspondiente
-;   mov [r9 + offset_doc_elem], rax
-;
-;   ; avanzar r9
-;   add r9, bytesBlockElement ; tambien puede ser con mov
-;   inc rcx
-;   jmp .ciclo
-;
-;   ; devolver el documeto nuevo
-;   mov rax, document_clone_ptr
-;
-; .fin:
-;
-;   pop rbp
-;   ret       ; DESPUES PROBAR DE """DEBUGGEAR""" con fprint viendo que hay en cada coso
-;             ; call printf
-;
 
 
     %define off_type 0
@@ -315,80 +250,81 @@ extern intClone
     %define off_data_ptr 8
     %define off_doc_values 8
 
-
     docClone:
       ; document_t* a -> RDI
       ;armo stackframe
       push rbp
       mov rbp,rsp
+      sub rsp,16
+      push rbx
       push r12
       push r13
       push r14
       push r15
 
 
-      mov r13, rdi ; PUNTERO AL DOC ORIGINAL
-      mov r13, [r13 + off_doc_values]
+      mov r13, rdi
+      mov r13, [r13 + off_doc_values]; PUNTERO AL VALUE ORIGINAL
 
+      ; largo del vector
+      mov rcx, [rdi + off_count]
+      mov [rbp - 8], rcx
 
-      mov r14, [rdi + off_count] ; largo del vector
 
       ;armar el document_t nuevo
       mov rdi, 16 ;tamaño del bloque
       call malloc
       mov r12, rax             ;PUNTERO A NUEVO DOCUMENTO -> R12
-
+                               ;0x408670 memoria de nuevo doc
       ; creamos arreglo
 
-      mov qword rax , r14
+      mov  rax , [rbp - 8]
       mov r8, 16 ; el tamaño de cada elemento del vector
       mul r8 ; mul  cx        ; supuestamente hace rax = r8 * rax
       mov rdi, rax ; paso el document_size * 16 a rdi para el malloc
       call malloc
-      mov r10,rax ; PUNTERO AL NUEVO VECTOR DE DOCUMENTOS -> R10
+      mov r14,rax ; PUNTERO AL NUEVO VECTOR DE DOCUMENTOS -> R14
+                  ; 0x408690 memoria de nuevo values
 
 
       ; Ya tenemos toda la memoria solicitada
       ; volcado de data a document:
-      mov [r12 + off_count], r14
-      mov [r12 + off_doc_values], r10
+
+      mov rcx, [rbp - 8]
+      mov [r12 + off_count], rcx
+      mov [r12 + off_doc_values], r14
 
       ; volcado de data a los document elem:
       xor r15, r15 ; RCX contador del vector (la "i" de nuestro querido for)
       xor rbx, rbx
     .ciclo:
-      cmp r15 , r14
+      cmp r15 , [rbp - 8]
       je .fin
-      lea rbx, [r15 * 2]
-      lea rbx, [rbx * 8]
-      mov r9, [r13 + rbx + off_type]
-      mov [r10 + rbx + off_type], r9
+      mov r9, [r13 + rbx + off_type] ; pisamos el que antes era el largo
+      mov [r14  + rbx + off_type], r9
       mov rdi, r9
       call getCloneFunction
       mov rdi, [r13 + rbx + off_data_ptr]
-
-
       call rax
-      mov [r10 + rbx + off_data_ptr], rax
+      mov [r14 + rbx + off_data_ptr], rax
+      add rbx, 16
       inc r15
       jmp .ciclo
-
-
-
+      ;r9   : auxiliar que tiene el tipo del dato
+      ;r12  : * al nuevo documento
+      ;r13  : * al values
+      ;r15  : contador de ciclos
     .fin:
-      mov rax,r12
+      mov rax, r12
 
       pop r15
       pop r14
       pop r13
       pop r12
+      pop rbx
+      add rsp, 16
       pop rbp
-      ret       ; DESPUES PROBAR DE """DEBUGGEAR""" con fprint viendo que hay en cada coso
-                ; call printf
-
-
-
-
+      ret
 
 
 
