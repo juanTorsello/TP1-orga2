@@ -189,8 +189,6 @@ strDelete:
 
 
 
-
-
   ;extern fopen
   ;extern fclose
   extern fprintf
@@ -249,6 +247,7 @@ extern intClone
     %define off_count 0
     %define off_data_ptr 8
     %define off_doc_values 8
+    %define off_doc_node 16
 
     docClone:
       ; document_t* a -> RDI
@@ -327,9 +326,101 @@ extern intClone
       ret
 
 
+extern getDeleteFunction
+extern intDelete
 
 docDelete:
-ret
+; void docDelete(document_t* a)
+; Borra un documento, esto incluye borrar todos los datos que contiene utilizando las funciones delete
+; asociadas a cada tipo de los datos.
+
+;IN: document_t* a -> RDI
+
+;armo stackframe
+  push rbp
+  mov rbp,rsp
+  push rbx
+  push r12
+  push r13
+  push r14
+  push r15
+
+  mov r12, rdi  ; me guardo el puntero al document en r12
+  mov r13, [rdi + off_doc_values] ; * a values
+  mov rbx, [rdi + off_count] ; auxiliarmente r9 = document.count
+  xor r15, r15  ; limpio iterador del ciclo
+
+.ciclo:
+  cmp r15, rbx
+  je .doc_t_delete
+
+  ; value delete:
+  ; borro el contenido (value)
+  mov rdi, [r13 + off_type] ; rdi = type_t
+  call getDeleteFunction
+  mov rdi, [r13 + off_data_ptr] ; rdi = * data
+  call rax  ; call al delete correspondiente
+
+  ; borro el tipo (value)    ; creo que el tipo este vendria a ser int, sino por las dudas
+                             ; se puede repetir lo mismo de antes y llamar a rax
+  ;;mov rdi, [r13 + off_type] ; rdi = * type_t
+  ;;call intDelete
+  ; call getDeleteFunction
+  ; mov rdi, [r13 + off_type] ; rdi = * type_t
+  ; call rax  ; call al delete correspondiente
+  ;;;;xor r13, r13
+
+  ; avanzo
+  inc r15 ; avanzo la i
+  add r13, off_doc_node  ; avanzo el puntero al siguiente nodo (r13 + 16)
+  jmp .ciclo
+
+.doc_t_delete:
+
+  ;delete doc value ponter: ;al ya borrrar todos los nodos, ahora solo borro el puntero
+  mov rdi, [r12 + off_doc_values]
+  call free
+
+  ;delete doc count:
+  xor r12, r12 ; limpio por las dudas el doc_count
+
+
+.fin:
+
+  pop r15
+  pop r14;
+  pop r13
+  pop r12
+  pop rbx
+  pop rbp
+  ret
+
+  ; r12  : * document in
+  ; r15  : contador "i" del ciclo
+
+  ; ? habra que hacer un delete del vector tambien?
+
+
+; idea:
+;
+; recorrer values e ir borrando
+
+; Finalmente borrar:
+    ;document_t:
+      ; int count;
+      ; docElem_t* values;
+
+
+
+
+
+
+
+
+
+
+
+
 
 ;*** List ***
 

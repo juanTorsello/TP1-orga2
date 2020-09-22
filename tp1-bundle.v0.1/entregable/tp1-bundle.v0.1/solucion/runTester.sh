@@ -22,7 +22,7 @@ valgrind --show-reachable=yes --leak-check=full --error-exitcode=1 ./tester
 
 
 echo " "
-echo "**Corriendo diferencias con la catedra" 
+echo "**Corriendo diferencias con la catedra"
 
 DIFFER="diff -d"
 ERRORDIFF=0
