@@ -329,7 +329,7 @@ extern intClone
 extern getDeleteFunction
 extern intDelete
 
-docDelete:
+docDelete:    ; parece andar, no rompe, pero tiene leaks
 ; void docDelete(document_t* a)
 ; Borra un documento, esto incluye borrar todos los datos que contiene utilizando las funciones delete
 ; asociadas a cada tipo de los datos.
@@ -416,16 +416,151 @@ docDelete:
 
 
 
-
-
-
-
-
-
 ;*** List ***
 
-listAdd:
-ret
+
+%define off_list_type 0
+%define off_list_size 4
+%define off_list_first_ptr 8
+%define off_list_last_ptr 16
+%define off_nodeList_data 0
+%define off_nodeList_next 8
+%define off_nodeList_prev 16
+
+
+
+
+
+
+
+
+
+; void listAdd(list_t* l, void* data){
+;
+;     //a es parametro
+;     while (l.haySiguiente) {
+;       if(a < b){
+;         if es primero → agregar izquierda acomodando centila, caso first
+;         agregamos a la izquierda
+;       } else{
+;         if(l.esUltimo){
+;           agregar a la derecha, caso last
+;         } else{
+;         l.avanzar
+;         }
+;     }
+;
+; }
+
+extern getCompareFunction
+
+;void listAdd(list_t* l, void* data)
+listAdd:  ;54 instrucciones aprox
+;list_t* (puntero a centinela) -> rdi
+;void * data -> rsi
+
+;armo stackframe
+  push rbp
+  mov rbp,rsp
+  push rbx
+  push r12
+  push r13
+  push r14
+  push r15
+
+;filtramos caso vacio
+
+; preparamos todo:
+  mov r12, rdi ; guardamos el puntero a centinela en otro lugar para no perderlo
+  mov r14, rsi ; sacamos la data de rsi
+
+; new Node:
+  mov rdi, 24
+  call malloc
+  mov rbx, rax ; guardamos en rbx la memoria solicitada
+
+; filtramos caso vacio
+  cmp qword [r12 + off_list_size], 0
+  je .casoVacio
+
+  mov r15, [rdi + off_list_first_ptr] ;r15 -> puntero a first de la lista
+; ciclo: (para encontrar donde va el nodo nuevo)
+.ciclo:
+  ; cmp qword [r15 + off_nodeList_next], 0 ; si es el ultimo elemento va a un caso especial
+  ; je .casoUltimo
+
+  ;comparar
+  mov rdi, [r12 + off_list_type]
+  call getCompareFunction
+  mov rdi, [r15  + off_nodeList_data]    ; a = el valor del elemento de la lista, b = nuestro valor a meter
+  mov rsi, [r14] ; el valor que recibimos por paramtro
+  call rax   ; en rax nos quedo 1, 0 o -1
+
+  cmp rax, 0
+  jle .agregarIzq ; para que no se me aumente siempre el r13 cuando ya es momento de enlazar, y no de volver al ciclo, MENOR O IGUAL JEJe
+
+  cmp qword [r15 + off_nodeList_next], 0 ; si es el ultimo elemento va a un caso especial
+  je .casoUltimo
+
+  mov r15, [r15 + off_nodeList_next]; avanzar
+  jmp .ciclo
+
+.agregarIzq:
+  cmp qword [r15 + off_nodeList_prev], 0
+  je .esPrimero
+
+  mov r13, [r15 + off_nodeList_prev]  ; que r13 sea el nodo anterior
+  mov [r15 + off_nodeList_prev], rbx  ; que el r15->prev apunte al nuevo(rbx)
+  mov [r13 + off_nodeList_next], rbx  ; que el r13->next apunte al nuevo(rbx)
+  mov [rbx + off_nodeList_prev], r13  ; que el rbx->prev apunte a r13
+  mov [rbx + off_nodeList_data], r14  ; que el rbx->dato apunte a r14
+  mov [rbx + off_nodeList_next], r15  ; que el rbx->next apunte a r15
+
+  jmp .fin
+
+.esPrimero:
+  ;r12 -> centinela
+  mov byte [rbx + off_nodeList_prev], 0 ;;;
+  mov [rbx + off_nodeList_data], r14
+  mov [rbx + off_nodeList_next], r15
+  mov [r12 + off_list_first_ptr], rbx
+  mov [r15 + off_nodeList_prev], rbx
+
+  jmp .fin
+
+
+.casoUltimo:
+  mov [r15 + off_nodeList_next], rbx
+  mov [rbx + off_nodeList_prev], r15
+  mov [rbx + off_nodeList_next], 0
+  mov [rbx + off_nodeList_data], r14
+  mov [r12 + off_list_last_ptr], rbx
+
+  jmp .fin
+
+.casoVacio:
+
+  mov [r12 + off_list_last_ptr] , rbx
+  mov [r12 + off_list_first_ptr], rbx
+  mov [rbx + off_nodeList_data] , r14
+  mov [rbx + off_nodeList_next] , 0
+  mov [rbx + off_nodeList_prev] , 0
+
+
+; fin :)
+
+.fin:
+
+  inc  [r12 + off_list_size]  ; incrementamos el size de la lista
+  ; despues se puede poner el dato solo aca en el fin
+  pop r15
+  pop r14
+  pop r13
+  pop r12
+  pop rbx
+  pop rbp
+  ret
+
 
 ;*** Tree ***
 

@@ -21,8 +21,8 @@ int main() {
     srand(12345);
     remove(filename_1);
     test_1(filename_1);
-    //remove(filename_2);
-    //test_2(filename_2);
+    remove(filename_2);
+    test_2(filename_2);
     return 0;
 }
 
@@ -238,8 +238,8 @@ void test_1(char* filename){
     FILE *pfile;
     RUN(filename,test_strings(pfile););
     RUN(filename,test_document(pfile););
-    //RUN(filename,test_list(pfile););
-    //RUN(filename,test_tree(pfile););
+    RUN(filename,test_list(pfile););
+    RUN(filename,test_tree(pfile););
 }
 
 document_t* randomDocument() {
