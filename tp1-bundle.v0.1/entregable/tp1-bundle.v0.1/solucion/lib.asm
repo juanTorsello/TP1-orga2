@@ -418,7 +418,7 @@ docDelete:    ; parece andar, no rompe, pero tiene leaks
 
 ;*** List ***
 
-
+%define NULL 0
 %define off_list_type 0
 %define off_list_size 4
 %define off_list_first_ptr 8
@@ -480,10 +480,10 @@ listAdd:  ;54 instrucciones aprox
   mov rbx, rax ; guardamos en rbx la memoria solicitada
 
 ; filtramos caso vacio
-  cmp qword [r12 + off_list_size], 0
+  cmp qword [r12 + off_list_size], NULL
   je .casoVacio
 
-  mov r15, [rdi + off_list_first_ptr] ;r15 -> puntero a first de la lista
+  mov r15, [r12 + off_list_first_ptr] ;r15 -> puntero a first de la lista
 ; ciclo: (para encontrar donde va el nodo nuevo)
 .ciclo:
   ; cmp qword [r15 + off_nodeList_next], 0 ; si es el ultimo elemento va a un caso especial
@@ -499,14 +499,14 @@ listAdd:  ;54 instrucciones aprox
   cmp rax, 0
   jle .agregarIzq ; para que no se me aumente siempre el r13 cuando ya es momento de enlazar, y no de volver al ciclo, MENOR O IGUAL JEJe
 
-  cmp qword [r15 + off_nodeList_next], 0 ; si es el ultimo elemento va a un caso especial
+  cmp qword [r15 + off_nodeList_next], NULL ; si es el ultimo elemento va a un caso especial
   je .casoUltimo
 
   mov r15, [r15 + off_nodeList_next]; avanzar
   jmp .ciclo
 
 .agregarIzq:
-  cmp qword [r15 + off_nodeList_prev], 0
+  cmp qword [r15 + off_nodeList_prev], NULL
   je .esPrimero
 
   mov r13, [r15 + off_nodeList_prev]  ; que r13 sea el nodo anterior
@@ -520,7 +520,7 @@ listAdd:  ;54 instrucciones aprox
 
 .esPrimero:
   ;r12 -> centinela
-  mov byte [rbx + off_nodeList_prev], 0 ;;;
+  mov qword [rbx + off_nodeList_prev], NULL ;;;
   mov [rbx + off_nodeList_data], r14
   mov [rbx + off_nodeList_next], r15
   mov [r12 + off_list_first_ptr], rbx
@@ -532,7 +532,7 @@ listAdd:  ;54 instrucciones aprox
 .casoUltimo:
   mov [r15 + off_nodeList_next], rbx
   mov [rbx + off_nodeList_prev], r15
-  mov [rbx + off_nodeList_next], 0
+  mov qword [rbx + off_nodeList_next], NULL
   mov [rbx + off_nodeList_data], r14
   mov [r12 + off_list_last_ptr], rbx
 
@@ -543,15 +543,15 @@ listAdd:  ;54 instrucciones aprox
   mov [r12 + off_list_last_ptr] , rbx
   mov [r12 + off_list_first_ptr], rbx
   mov [rbx + off_nodeList_data] , r14
-  mov [rbx + off_nodeList_next] , 0
-  mov [rbx + off_nodeList_prev] , 0
+  mov qword [rbx + off_nodeList_next] , NULL
+  mov qword[rbx + off_nodeList_prev] , NULL
 
 
 ; fin :)
 
 .fin:
 
-  inc  [r12 + off_list_size]  ; incrementamos el size de la lista
+  inc qword [r12 + off_list_size]  ; incrementamos el size de la lista
   ; despues se puede poner el dato solo aca en el fin
   pop r15
   pop r14
