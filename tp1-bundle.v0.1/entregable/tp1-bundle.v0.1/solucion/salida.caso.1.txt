@@ -45,8 +45,3 @@ cmp 0
 [00,0zz,aa,bb,cccc,dd,ee,ff,gg,hh]
 ===== Tree
 
-
-
-
-
-

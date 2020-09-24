@@ -188,69 +188,6 @@ strCmp:
   ret
 
 
-; strCmp:
-;     ; rdi = str1 , rsi=str2
-;     push r13
-;     push r14
-;     mov r13, rdi
-;     mov r14, rsi
-;     call strLen
-;     mov r8, rax
-;     mov rdi, r14
-;     call strLen
-;     mov r9, rax
-;     mov rdi, r13
-;     mov rsi, r14
-;     cld
-;     jmp .seg
-;     cmp r8, r9
-;     jle .seg
-;     jmp .prim
-;
-;     .seg:
-; 	mov rcx, r8
-; 	inc rcx
-; 	jmp .nofin
-;
-;     .prim:
-; 	mov rcx, r9
-; 	inc rcx
-; 	jmp .nofin
-;
-;     .nofin:
-; 	mov rdi, r13
-; 	mov rsi, r14
-; 	repe cmpsb
-; 	jne .dist
-; 	jmp .igual
-;
-;     .igual:
-; 	mov rax, 0
-; 	jmp .fin
-;
-;     .dist:
-; 	dec rsi
-; 	dec rdi
-; 	mov r9b, byte[rsi]
-; 	cmp byte[rdi], r9b
-; 	jle .menor
-; 	jmp .mayor
-;
-;     .menor:
-; 	mov rax, 1
-; 	jmp .fin
-;
-;     .mayor:
-; 	mov rax, -1
-; 	jmp .fin
-;
-;     .fin:
-;     pop r14
-;     pop r13
-;     ret
-
-
-
 
 
 
@@ -259,9 +196,6 @@ strDelete:
   ret
 
 
-
-  ;extern fopen
-  ;extern fclose
   extern fprintf
 
   strPrint:
@@ -271,18 +205,20 @@ strDelete:
   ; Stack frame (Armado)
     push rbp
     mov rbp, rsp
+    push r12
+    push r13
 
-    mov r8,rdi    ; R8 aux con el char* a
+    mov r12,rdi    ; R8 aux con el char* a
     mov rdi,rsi
-    mov r9, rsi
+    mov r13, rsi
     ;mov rsi, modo_fopen
 
     ; ; fopen toma rdi: FILE, rsi: modo_fopen
     ; call fopen
     mov rsi, string_format
-    cmp byte [r8],0
+    cmp byte [r12],0
     je .NULL
-    mov rdx,r8
+    mov rdx,r12
     jmp .fprintf
 
   .NULL:
@@ -292,11 +228,13 @@ strDelete:
     ;fprintf(fp, "%s", r8);
     ; rdi: FILE, rsi: string_format, rdx: char* a (R8)
     call fprintf
-    mov rdi,r9
+    mov rdi,r13
     ;call fclose ; RDI: FILE ; NO ANDA, preguntar si va aca o en C
 
   .fin:
     ; Stack Frame (Limpieza)
+    pop r13
+    pop r12
     pop rbp
     ret
 
@@ -499,26 +437,6 @@ docDelete:    ; parece andar, no rompe, pero tiene leaks
 %define off_nodeList_prev 16
 
 
-
-; void listAdd(list_t* l, void* data){
-;
-;     //a es parametro
-;     while (l.haySiguiente) {
-;       if(a < b){
-;         if es primero → agregar izquierda acomodando centila, caso first
-;         agregamos a la izquierda
-;       } else{
-;         if(l.esUltimo){
-;           agregar a la derecha, caso last
-;         } else{
-;         l.avanzar
-;         }
-;     }
-;
-; }
-
-  ;  bb aa
-; {"aa","bb","dd","ff","00"}
 extern getCompareFunction
 
 ;void listAdd(list_t* l, void* data)
@@ -546,43 +464,28 @@ extern getCompareFunction
   mov rdi, 24
   call malloc
   mov rbx, rax ; guardamos en rbx la memoria solicitada
-  ; rbx 0x4086b0
+
 
 ; filtramos caso vacio
-  cmp qword [r12 + off_list_size], 0
-  ;cmp qword [r12 + off_list_size], NULL
+
+  cmp qword [r12 + off_list_size], NULL
   je .casoVacio
 
   mov r15, [r12 + off_list_first_ptr] ;r15 -> puntero a first de la lista
 ; ciclo: (para encontrar donde va el nodo nuevo)
 .ciclo:
-  ; cmp qword [r15 + off_nodeList_next], 0 ; si es el ultimo elemento va a un caso especial
-  ; je .casoUltimo
 
   ;comparar
-  mov rdi, [r12 + off_list_type]    
+  mov rdi, [r12 + off_list_type]
   call getCompareFunction
 
   mov rdi, [r15 + off_nodeList_data]
-  ;mov rdi, [r15  + off_nodeList_data]    ; a = el valor del elemento de la lista, b = nuestro valor a meter
-  ;mov rsi, [r14] ; el valor que recibimos por paramtro
 
   mov rsi, r14 ; el valor que recibimos por paramtro
   call rax   ; en rax nos quedo 1, 0 o -1
 
-  ; cmp qword rax, 0
-  ; je .agregarIzq ; para que no se me aumente siempre el r13 cuando ya es momento de enlazar, y no de volver al ciclo, MENOR O IGUAL JEJe
-  ; cmp qword rax, 1000
-  ; jg .agregarIzq
-
-  ;   r15  r14
-  ; {"aa","bb","dd","ff","00"}
   cmp eax, 0
-  ;cmp eax, 0s
   jle .agregarIzq ;
-
-  ; cmp qword rax, 0
-  ; jle .agregarIzq ;
 
   cmp qword [r15 + off_nodeList_next], NULL ; si es el ultimo elemento va a un caso especial
   je .casoUltimo
@@ -598,15 +501,13 @@ extern getCompareFunction
   mov [r15 + off_nodeList_prev], rbx  ; que el r15->prev apunte al nuevo(rbx)
   mov [r13 + off_nodeList_next], rbx  ; que el r13->next apunte al nuevo(rbx)
   mov [rbx + off_nodeList_prev], r13  ; que el rbx->prev apunte a r13
-  ;mov [rbx + off_nodeList_data], r14  ; que el rbx->dato apunte a r14
   mov [rbx + off_nodeList_next], r15  ; que el rbx->next apunte a r15
 
   jmp .fin
 
 .esPrimero:
   ;r12 -> centinela
-  mov qword [rbx + off_nodeList_prev], NULL ;;;
-  ;mov [rbx + off_nodeList_data], r14
+  mov qword [rbx + off_nodeList_prev], NULL
   mov [rbx + off_nodeList_next], r15
   mov [r12 + off_list_first_ptr], rbx
   mov [r15 + off_nodeList_prev], rbx
@@ -618,7 +519,6 @@ extern getCompareFunction
   mov [r15 + off_nodeList_next], rbx
   mov [rbx + off_nodeList_prev], r15
   mov qword [rbx + off_nodeList_next], NULL
-  ;mov [rbx + off_nodeList_data], r14
   mov [r12 + off_list_last_ptr], rbx
 
   jmp .fin
@@ -627,31 +527,207 @@ extern getCompareFunction
 
   mov [r12 + off_list_last_ptr] , rbx
   mov [r12 + off_list_first_ptr], rbx
-  ;mov [rbx + off_nodeList_data] , r14
   mov qword [rbx + off_nodeList_next] , NULL
   mov qword[rbx + off_nodeList_prev] , NULL
 
 
-; fin :)
+
 
 .fin:
 
-  ;mov r14, [r14]
+
   mov [rbx + off_nodeList_data] , r14
   inc qword [r12 + off_list_size]  ; incrementamos el size de la lista
-  ; despues se puede poner el dato solo aca en el fin
+
   pop r15
   pop r14
   pop r13
   pop r12
   pop rbx
   pop rbp
-   ret
+  ret
 
 
 ;*** Tree ***
 
+
+%define off_tree_first_ptr 0
+%define off_tree_size 8
+%define off_tree_type_key 12
+%define off_tree_type_data 16
+%define off_tree_duplicates 20
+%define off_nodeTree_key 0
+%define off_nodeTree_values 8
+%define off_nodeTree_left 16
+%define off_nodeTree_right 24
+
+
+
+;int treeInsert(tree_t* tree, void* key, void* data)
+
+
+extern listNew
+
 treeInsert:
-ret
+;tree_t* -> RDI
+;void* key -> RSI
+;void* data -> RDX
+
+
+;armo stackframe
+  push rbp
+  mov rbp,rsp
+  sub rsp,24
+  push rbx
+  push r12
+  push r13
+  push r14
+  push r15
+
+  mov r12, rdi        ; R12        -> PUNTERO A CENTINELA TREE
+  mov [rbp - 8] , rsi ; [rbp - 8]  -> PUNTERO A KEY
+  mov [rbp - 16], rdx ; [rbp - 16] -> PUNTERO A DATA (significado)
+
+
+  ;ver si es primer elemento
+  cmp qword [r12 + off_tree_size], 0
+  mov qword [rbp - 24], 0  ; flag Agregar Primero
+  je .preAgregado
+
+  mov r13, [r12 + off_tree_first_ptr]  ; R13 -> PUNTERO A PRIMER NODO
+
+.ciclo:
+
+;comparo
+
+  mov rdi, [r12 + off_tree_type_key]
+  call getCompareFunction
+
+  mov rdi, [r13 + off_nodeTree_key] ; el elemento del tree
+  mov rsi, [rbp - 8]                ; el valor que recibimos por paramtro
+
+  call rax                          ; 1 si el parametro (rsi) es mas grande
+
+  cmp eax, 0
+  je .igual
+  jl .masChico
+
+
+.masGrande:
+
+  cmp qword [r13 + off_nodeTree_right], NULL
+  mov qword [rbp - 24], 1  ; flag Agregar Derecha
+  je .preAgregado
+
+  mov r13, [r13 + off_nodeTree_right]
+  jmp .ciclo
+
+.masChico:
+
+  cmp qword [r13 + off_nodeTree_left], NULL
+  mov qword [rbp - 24], -1  ; flag Agregar Izquierda
+  je .preAgregado
+
+  mov r13, [r13 + off_nodeTree_left]
+  jmp .ciclo
+
+
+.igual: ;en este caso hay que ver si esta permitido repetidos.
+
+
+  cmp qword [r12 + off_tree_duplicates], 0
+  je .set0
+  mov rdi,[r12 + off_tree_type_data]
+  call getCloneFunction
+  mov rdi, [rbp - 16] ; puntero a data
+  call rax
+  ; setear parametro de listAdd
+  mov rdi, [r13 + off_nodeTree_values]
+  mov rsi, rax
+  call listAdd
+  jmp .fin
+
+.set0:
+  mov rax, 0
+  jmp .fin
+
+;por el momento terminado
+
+
+.preAgregado:
+
+  ;pedimos memoria
+  mov rdi, 32
+  call malloc
+  mov rbx, rax        ; RBX -> PUNTERO A MEMORIA SOLICITADA
+
+  ;clonamos la key
+  mov rdi,[r12 + off_tree_type_key]
+  call getCloneFunction
+  mov rdi, [rbp - 8]  ;puntero a data
+  call rax            ;clonamos key
+  mov r14, rax        ;R14 -> KEY CLONADA
+
+  ;clonamos la data
+  mov rdi,[r12 + off_tree_type_data]
+  call getCloneFunction
+  mov rdi, [rbp - 16] ; puntero a data
+  call rax            ; clonamos data
+  mov r15, rax        ; R15 -> DATA CLONADA
+
+  ;insertamos datos clonados
+  mov [rbx + off_nodeTree_key], r14     ; insertamos key
+  mov rdi , [r12 + off_tree_type_data]  ;pasamos tipo de list
+  call listNew
+
+  ; setear parametro de listAdd
+  mov [rbx + off_nodeTree_values], rax  ;guardamos puntero a lista en nodo
+  mov rdi, [rbx + off_nodeTree_values]
+  mov rsi, r15
+  call listAdd
+
+  ;seteamos ptr izq y der en 0
+  mov qword [rbx + off_nodeTree_left], NULL
+  mov qword [rbx + off_nodeTree_right], NULL
+
+  ;vemos a donde seguimos
+  cmp qword [rbp - 24], 0
+  mov rax, 1                ; return 1;
+  je .agregarPrimero
+  jl .agregarIzq
+
+
+.agregarDer:
+
+  mov [r13 + off_nodeTree_right], rbx
+  jmp .fin
+
+.agregarIzq:
+
+  mov [r13 + off_nodeTree_left], rbx
+  jmp .fin
+
+.agregarPrimero:
+
+  mov [r12 + off_tree_first_ptr], rbx
+
+
+.fin:
+
+  inc qword [r12 + off_tree_size]
+
+  pop r15
+  pop r14
+  pop r13
+  pop r12
+  pop rbx
+  add rsp, 24
+  pop rbp
+  ret
+
+
+
+
+
 treePrint:
 ret
