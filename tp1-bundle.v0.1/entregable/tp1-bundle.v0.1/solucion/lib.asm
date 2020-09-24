@@ -13,8 +13,8 @@ section .data
 
 ; strPrint
 modo_fopen: db "w", 10
-string_format: db "%s", 10, 0
-string_NULL: db "NULL",10,0
+string_format: db "%s", 0
+string_NULL: db "NULL",0
 
 
 
@@ -156,14 +156,18 @@ strCmp:
   ;armo Stackframe
   push rbp
   mov rbp,rsp
+  push r12
+  push r13
 
 .ciclo:
-  mov r8b, [rdi]  ; copio el char al que apunte rdi de "a"
-  mov r9b, [rsi]  ; copio el char al que apunte rsi de "b"
-  cmp r8b, r9b    ; cmp los char
+  xor r12, r12
+  xor r13, r13
+  mov r12b, [rdi]  ; copio el char al que apunte rdi de "a"
+  mov r13b, [rsi]  ; copio el char al que apunte rsi de "b"
+  cmp r12b, r13b    ; cmp los char
   jl .menor
   jg .mayor
-  cmp r8b, 0      ; Si alguno es 0, entonces fin
+  cmp r12b, 0      ; Si alguno es 0, entonces fin
   je .iguales
   inc rdi         ; inc rdi para que apunte al siguiente char
   inc rsi         ; inc rsi para que apunte al siguiente char
@@ -177,8 +181,75 @@ strCmp:
 .iguales:
   mov rax, 0
 .fin:
+
+  pop r13
+  pop r12
   pop rbp
   ret
+
+
+; strCmp:
+;     ; rdi = str1 , rsi=str2
+;     push r13
+;     push r14
+;     mov r13, rdi
+;     mov r14, rsi
+;     call strLen
+;     mov r8, rax
+;     mov rdi, r14
+;     call strLen
+;     mov r9, rax
+;     mov rdi, r13
+;     mov rsi, r14
+;     cld
+;     jmp .seg
+;     cmp r8, r9
+;     jle .seg
+;     jmp .prim
+;
+;     .seg:
+; 	mov rcx, r8
+; 	inc rcx
+; 	jmp .nofin
+;
+;     .prim:
+; 	mov rcx, r9
+; 	inc rcx
+; 	jmp .nofin
+;
+;     .nofin:
+; 	mov rdi, r13
+; 	mov rsi, r14
+; 	repe cmpsb
+; 	jne .dist
+; 	jmp .igual
+;
+;     .igual:
+; 	mov rax, 0
+; 	jmp .fin
+;
+;     .dist:
+; 	dec rsi
+; 	dec rdi
+; 	mov r9b, byte[rsi]
+; 	cmp byte[rdi], r9b
+; 	jle .menor
+; 	jmp .mayor
+;
+;     .menor:
+; 	mov rax, 1
+; 	jmp .fin
+;
+;     .mayor:
+; 	mov rax, -1
+; 	jmp .fin
+;
+;     .fin:
+;     pop r14
+;     pop r13
+;     ret
+
+
 
 
 
@@ -429,12 +500,6 @@ docDelete:    ; parece andar, no rompe, pero tiene leaks
 
 
 
-
-
-
-
-
-
 ; void listAdd(list_t* l, void* data){
 ;
 ;     //a es parametro
@@ -452,10 +517,13 @@ docDelete:    ; parece andar, no rompe, pero tiene leaks
 ;
 ; }
 
+  ;  bb aa
+; {"aa","bb","dd","ff","00"}
 extern getCompareFunction
 
 ;void listAdd(list_t* l, void* data)
-listAdd:  ;54 instrucciones aprox
+ listAdd:  ;54 instrucciones aprox
+
 ;list_t* (puntero a centinela) -> rdi
 ;void * data -> rsi
 
@@ -478,9 +546,11 @@ listAdd:  ;54 instrucciones aprox
   mov rdi, 24
   call malloc
   mov rbx, rax ; guardamos en rbx la memoria solicitada
+  ; rbx 0x4086b0
 
 ; filtramos caso vacio
-  cmp qword [r12 + off_list_size], NULL
+  cmp qword [r12 + off_list_size], 0
+  ;cmp qword [r12 + off_list_size], NULL
   je .casoVacio
 
   mov r15, [r12 + off_list_first_ptr] ;r15 -> puntero a first de la lista
@@ -490,14 +560,29 @@ listAdd:  ;54 instrucciones aprox
   ; je .casoUltimo
 
   ;comparar
-  mov rdi, [r12 + off_list_type]
+  mov rdi, [r12 + off_list_type]    
   call getCompareFunction
-  mov rdi, [r15  + off_nodeList_data]    ; a = el valor del elemento de la lista, b = nuestro valor a meter
-  mov rsi, [r14] ; el valor que recibimos por paramtro
+
+  mov rdi, [r15 + off_nodeList_data]
+  ;mov rdi, [r15  + off_nodeList_data]    ; a = el valor del elemento de la lista, b = nuestro valor a meter
+  ;mov rsi, [r14] ; el valor que recibimos por paramtro
+
+  mov rsi, r14 ; el valor que recibimos por paramtro
   call rax   ; en rax nos quedo 1, 0 o -1
 
-  cmp rax, 0
-  jle .agregarIzq ; para que no se me aumente siempre el r13 cuando ya es momento de enlazar, y no de volver al ciclo, MENOR O IGUAL JEJe
+  ; cmp qword rax, 0
+  ; je .agregarIzq ; para que no se me aumente siempre el r13 cuando ya es momento de enlazar, y no de volver al ciclo, MENOR O IGUAL JEJe
+  ; cmp qword rax, 1000
+  ; jg .agregarIzq
+
+  ;   r15  r14
+  ; {"aa","bb","dd","ff","00"}
+  cmp eax, 0
+  ;cmp eax, 0s
+  jle .agregarIzq ;
+
+  ; cmp qword rax, 0
+  ; jle .agregarIzq ;
 
   cmp qword [r15 + off_nodeList_next], NULL ; si es el ultimo elemento va a un caso especial
   je .casoUltimo
@@ -513,7 +598,7 @@ listAdd:  ;54 instrucciones aprox
   mov [r15 + off_nodeList_prev], rbx  ; que el r15->prev apunte al nuevo(rbx)
   mov [r13 + off_nodeList_next], rbx  ; que el r13->next apunte al nuevo(rbx)
   mov [rbx + off_nodeList_prev], r13  ; que el rbx->prev apunte a r13
-  mov [rbx + off_nodeList_data], r14  ; que el rbx->dato apunte a r14
+  ;mov [rbx + off_nodeList_data], r14  ; que el rbx->dato apunte a r14
   mov [rbx + off_nodeList_next], r15  ; que el rbx->next apunte a r15
 
   jmp .fin
@@ -521,7 +606,7 @@ listAdd:  ;54 instrucciones aprox
 .esPrimero:
   ;r12 -> centinela
   mov qword [rbx + off_nodeList_prev], NULL ;;;
-  mov [rbx + off_nodeList_data], r14
+  ;mov [rbx + off_nodeList_data], r14
   mov [rbx + off_nodeList_next], r15
   mov [r12 + off_list_first_ptr], rbx
   mov [r15 + off_nodeList_prev], rbx
@@ -533,7 +618,7 @@ listAdd:  ;54 instrucciones aprox
   mov [r15 + off_nodeList_next], rbx
   mov [rbx + off_nodeList_prev], r15
   mov qword [rbx + off_nodeList_next], NULL
-  mov [rbx + off_nodeList_data], r14
+  ;mov [rbx + off_nodeList_data], r14
   mov [r12 + off_list_last_ptr], rbx
 
   jmp .fin
@@ -542,7 +627,7 @@ listAdd:  ;54 instrucciones aprox
 
   mov [r12 + off_list_last_ptr] , rbx
   mov [r12 + off_list_first_ptr], rbx
-  mov [rbx + off_nodeList_data] , r14
+  ;mov [rbx + off_nodeList_data] , r14
   mov qword [rbx + off_nodeList_next] , NULL
   mov qword[rbx + off_nodeList_prev] , NULL
 
@@ -551,6 +636,8 @@ listAdd:  ;54 instrucciones aprox
 
 .fin:
 
+  ;mov r14, [r14]
+  mov [rbx + off_nodeList_data] , r14
   inc qword [r12 + off_list_size]  ; incrementamos el size de la lista
   ; despues se puede poner el dato solo aca en el fin
   pop r15
@@ -559,7 +646,7 @@ listAdd:  ;54 instrucciones aprox
   pop r12
   pop rbx
   pop rbp
-  ret
+   ret
 
 
 ;*** Tree ***

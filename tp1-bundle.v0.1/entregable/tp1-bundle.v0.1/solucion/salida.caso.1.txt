@@ -1,10 +1,7 @@
 ===== String
 ==> Clone
 casa
-
 NULL
-
-
 ==> Cmp
 cmp(sar,sar) -> 0
 cmp(sar,23) -> -1
@@ -32,36 +29,24 @@ cmp(tix,taaa) -> -1
 cmp(tix,tbb) -> -1
 cmp(tix,tix) -> 0
 ===== Document
-{4, hola
-, 0.430000}
-{81, Perro
-, 3.772000}
+{4, hola, 0.430000}
+{81, Perro, 3.772000}
 cmp 1
 cmp -1
 cmp 0
 cmp 0
-{4, hola
-, 0.430000}
-{81, Perro
-, 3.772000}
+{4, hola, 0.430000}
+{81, Perro, 3.772000}
 ===== List
 ==> listAdd
-[aa@
-,bb@
-,dd@
-,ffû÷ÿ
-,00û÷ÿ
-]
-[aa@
-,bb@
-,dd@
-,ff@
-,00@
-]
+[00,0zz,aa,bb,cccc,dd,ee,ff,gg,hh]
+[00,0zz,aa,bb,cccc,dd,ee,ff,gg,hh]
 ==> listRemove
-[aa@
-,bb@
-,dd@
-,ff@
-,00@
-]
+[00,0zz,aa,bb,cccc,dd,ee,ff,gg,hh]
+===== Tree
+
+
+
+
+
+

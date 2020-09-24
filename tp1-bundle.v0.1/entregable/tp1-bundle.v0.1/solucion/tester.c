@@ -46,7 +46,15 @@ char* randomHexString(uint32_t l) {
     return s;
 }
 
-char* strings[10] = {"aa","bb","dd","ff","00","zz","cc","ee","gg","hh"};
+
+
+
+
+
+
+
+char* strings[10] = {"aa","bb","dd","ff","00","0zz","cccc","ee","gg","hh"};
+//char* strings[10] = {"dddd","bbbb","cccc","0000","zzzz","cc","ee","gg","hh"};
 
 /** Strings **/
 void test_strings(FILE *pfile) {
@@ -72,7 +80,6 @@ void test_strings(FILE *pfile) {
     }
 }
 
-/** List **/
 void test_list(FILE *pfile) {
     fprintf(pfile,"===== List\n");
     char *a, *b, *c;
@@ -80,12 +87,12 @@ void test_list(FILE *pfile) {
     // listAdd
     fprintf(pfile,"==> listAdd\n");
     l1 = listNew(TypeString);
-    for(int i=0; i<5;i++)
+    for(int i=0; i<10;i++)
         listAdd(l1,strClone(strings[i]));
     listPrint(l1,pfile); fprintf(pfile,"\n");
     listDelete(l1);
     l1 = listNew(TypeString);
-    for(int i=0; i<5;i++)
+    for(int i=0; i<10;i++)
         listAdd(l1,strClone(strings[i]));
     listPrint(l1,pfile); fprintf(pfile,"\n");
     listDelete(l1);
@@ -93,7 +100,7 @@ void test_list(FILE *pfile) {
     fprintf(pfile,"==> listRemove\n");
     l1 = listNew(TypeString);
     listRemove(l1, strings[0]);
-    for(int i=0; i<5;i++) {
+    for(int i=0; i<10;i++) {
         listAdd(l1,strClone(strings[i]));
         listRemove(l1, strings[0]);
     }
@@ -104,6 +111,7 @@ void test_list(FILE *pfile) {
     listPrint(l1,pfile); fprintf(pfile,"\n");
     listDelete(l1);
 }
+
 
 
 
@@ -285,3 +293,7 @@ void test_2(char* filename){
     }
     treeDelete(t);
 }
+/*
+make main
+./runTester.sh
+*/
