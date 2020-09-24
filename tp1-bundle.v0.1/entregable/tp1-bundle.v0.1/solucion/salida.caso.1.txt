@@ -39,9 +39,29 @@ cmp 0
 {81, Perro, 3.772000}
 ===== List
 ==> listAdd
-[00,0zz,aa,bb,cccc,dd,ee,ff,gg,hh]
-[00,0zz,aa,bb,cccc,dd,ee,ff,gg,hh]
+[00,aa,bb,dd,ff]
+[00,aa,bb,dd,ff]
 ==> listRemove
-[00,0zz,aa,bb,cccc,dd,ee,ff,gg,hh]
+[00,aa,bb,dd,ff]
 ===== Tree
 
+
+
+
+
+
+[pepe]
+[carola,ramon]
+[ramon,rara]
+
+[pepe]
+[carola,ramon]
+[ramon,rara]
+
+[6.200000]
+[1.400000,4.400000]
+[5.400000,1.200000]
+
+[6.200000]
+[1.400000,4.400000]
+[5.400000,1.200000]

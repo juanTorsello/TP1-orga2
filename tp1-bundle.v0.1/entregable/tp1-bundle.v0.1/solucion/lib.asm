@@ -554,8 +554,9 @@ extern getCompareFunction
 %define off_tree_first_ptr 0
 %define off_tree_size 8
 %define off_tree_type_key 12
-%define off_tree_type_data 16
-%define off_tree_duplicates 20
+%define off_tree_duplicates 16
+%define off_tree_type_data 20
+
 %define off_nodeTree_key 0
 %define off_nodeTree_values 8
 %define off_nodeTree_left 16
@@ -590,8 +591,8 @@ treeInsert:
 
 
   ;ver si es primer elemento
-  cmp qword [r12 + off_tree_size], 0
   mov qword [rbp - 24], 0  ; flag Agregar Primero
+  cmp dword [r12 + off_tree_size], 0
   je .preAgregado
 
   mov r13, [r12 + off_tree_first_ptr]  ; R13 -> PUNTERO A PRIMER NODO
@@ -599,8 +600,7 @@ treeInsert:
 .ciclo:
 
 ;comparo
-
-  mov rdi, [r12 + off_tree_type_key]
+  mov edi, [r12 + off_tree_type_key]
   call getCompareFunction
 
   mov rdi, [r13 + off_nodeTree_key] ; el elemento del tree

@@ -224,9 +224,62 @@ tree_t* treeNew(type_t typeKey, type_t typeData, int duplicate) {
     return t;
 }
 list_t* treeGet(tree_t* tree, void* key) {
-	//completar
-    return 0;
+
+    treeNode_t *actual = malloc(32);
+    actual = tree->first;
+
+	  for (size_t i = 0; i < tree->size; i++) {
+        funcCmp_t* resCmpFunction = getCompareFunction(tree->typeKey);
+        int32_t resCmp = resCmpFunction(actual->key, key);
+        if (resCmp == 1) {
+          actual = actual->right;
+        } else if (resCmp == -1){
+          actual = actual->left;
+        } else {
+
+          list_t* res_list = listClone(actual->values);
+           free(actual);
+           return res_list;
+        }
+    }
+
 }
+
+
+/*
+T &string_map<T>::at(const string &clave) {
+
+    Nodo *actual = raiz;
+
+    for (int i = 0; i < clave.size(); ++i) {
+        actual = actual->siguientes[int(clave[(i)])];
+    }
+
+    T &valor = *actual->definicion;
+    actual = raiz->siguientes[256];
+    return valor;
+
+
+}
+*/
+
+//
+// typedef struct s_tree {
+// struct s_treeNode *first;
+// uint32_t size;
+// type_t typeKey;
+// int
+// duplicate;
+// type_t typeData;
+// } tree_t;
+//
+// typedef struct s_treeNode {
+// void *key;
+// list_t *values;
+// struct s_treeNode *left;
+// struct s_treeNode *right;
+
+
 void treeRemove(tree_t* tree, void* key, void* data) {
     //completar
 }
