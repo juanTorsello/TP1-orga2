@@ -172,47 +172,51 @@ void listAddLast(list_t* l, void* data){
 void listRemove(list_t *l, void *data) {
 
     listElem_t* actual = l->first;
+    //printf("%p", &actual);
     funcCmp_t * function_cmp = getCompareFunction(l->type);
 
-    while (actual->next != NULL) {
-        int32_t res_cmp = function_cmp(actual->data, data);
-        if (res_cmp == 0) {
-            if (actual->prev = NULL) { // Caso es el primer
+    if (l->size != 0){
 
-                l->first = actual->next;
-                actual->next->prev = NULL;
+      while (actual->next != NULL) {
+          int32_t res_cmp = function_cmp(actual->data, data);
+          if (res_cmp == 0) {
+              if (actual->prev = NULL) { // Caso es el primer
 
-            } else {
+                  l->first = actual->next;
+                  actual->next->prev = NULL;
 
-                actual->prev->next = actual->next;
-                actual->next->prev = actual->prev;
+              } else {
 
-            }
+                  actual->prev->next = actual->next;
+                  actual->next->prev = actual->prev;
 
-            free(actual);
-            l->size = l->size - 1;
-        }
+              }
 
-        actual = actual->next;
-    }
+              free(actual);
+              l->size = l->size - 1;
+          }
 
-    //caso ultimo
-    int32_t res_cmp = function_cmp(actual->data, data);
-    if (res_cmp == 0) {
-        if (l->size == 1) {
+          actual = actual->next;
+      }
 
-            l->last = NULL;
-            l->first = NULL;
+      //caso ultimo
+      int32_t res_cmp = function_cmp(actual->data, data);
+      if (res_cmp == 0) {
+          if (l->size == 1) {
 
-        } else {
+              l->last = NULL;
+              l->first = NULL;
 
-            l->last = actual->prev;
-            actual->prev->next = NULL;
-        }
+          } else {
 
-        free(actual);
-        l->size = l->size - 1;
-    }
+              l->last = actual->prev;
+              actual->prev->next = NULL;
+          }
+
+          free(actual);
+          l->size = l->size - 1;
+      }
+  }
 }
 
 
