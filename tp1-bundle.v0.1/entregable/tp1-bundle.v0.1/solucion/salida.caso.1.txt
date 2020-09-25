@@ -42,26 +42,3 @@ cmp 0
 [00,aa,bb,dd,ff]
 [00,aa,bb,dd,ff]
 ==> listRemove
-[00,aa,bb,dd,ff]
-===== Tree
-
-
-
-
-
-
-[pepe]
-[carola,ramon]
-[ramon,rara]
-
-[pepe]
-[carola,ramon]
-[ramon,rara]
-
-[6.200000]
-[1.400000,4.400000]
-[5.400000,1.200000]
-
-[6.200000]
-[1.400000,4.400000]
-[5.400000,1.200000]

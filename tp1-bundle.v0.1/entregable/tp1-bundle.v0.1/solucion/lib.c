@@ -167,9 +167,55 @@ void listAddLast(list_t* l, void* data){
         l->last->next = n;
     l->last = n;
 }
-void listRemove(list_t* l, void* data){
-    //completar
+void listRemove(list_t *l, void *data) {
+
+    listElem_t *actual = l->first;
+    funcCmp_t *function_cmp = getCompareFunction(l->type);
+
+
+    while (actual->next != NULL) {
+        int32_t res_cmp = function_cmp(actual->data, data);
+        if (res_cmp == 0) {
+            if (actual->prev = NULL) { // Caso es el primer
+
+                l->first = actual->next;
+                actual->next->prev = NULL;
+
+            } else {
+
+                actual->prev->next = actual->next;
+                actual->next->prev = actual->prev;
+
+            }
+
+            free(actual);
+            l->size = l->size - 1;
+        }
+
+        actual = actual->next;
+    }
+
+    //caso ultimo
+    int32_t res_cmp = function_cmp(actual->data, data);
+    if (res_cmp == 0) {
+        if (l->size == 1) {
+
+            l->last = NULL;
+            l->first = NULL;
+
+        } else {
+
+            l->last = actual->prev;
+            actual->prev->next = NULL;
+        }
+
+        free(actual);
+        l->size = l->size - 1;
+    }
 }
+
+
+
 list_t* listClone(list_t* l) {
     funcClone_t* fn = getCloneFunction(l->type);
     list_t* lclone = listNew(l->type);
@@ -246,38 +292,6 @@ list_t* treeGet(tree_t* tree, void* key) {
 }
 
 
-/*
-T &string_map<T>::at(const string &clave) {
-
-    Nodo *actual = raiz;
-
-    for (int i = 0; i < clave.size(); ++i) {
-        actual = actual->siguientes[int(clave[(i)])];
-    }
-
-    T &valor = *actual->definicion;
-    actual = raiz->siguientes[256];
-    return valor;
-
-
-}
-*/
-
-//
-// typedef struct s_tree {
-// struct s_treeNode *first;
-// uint32_t size;
-// type_t typeKey;
-// int
-// duplicate;
-// type_t typeData;
-// } tree_t;
-//
-// typedef struct s_treeNode {
-// void *key;
-// list_t *values;
-// struct s_treeNode *left;
-// struct s_treeNode *right;
 
 
 void treeRemove(tree_t* tree, void* key, void* data) {
