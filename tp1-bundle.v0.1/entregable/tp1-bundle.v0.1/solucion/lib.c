@@ -167,11 +167,12 @@ void listAddLast(list_t* l, void* data){
         l->last->next = n;
     l->last = n;
 }
+
+
 void listRemove(list_t *l, void *data) {
 
-    listElem_t *actual = l->first;
-    funcCmp_t *function_cmp = getCompareFunction(l->type);
-
+    listElem_t* actual = l->first;
+    funcCmp_t * function_cmp = getCompareFunction(l->type);
 
     while (actual->next != NULL) {
         int32_t res_cmp = function_cmp(actual->data, data);
