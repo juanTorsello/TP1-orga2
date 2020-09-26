@@ -51,6 +51,8 @@ char* strings[10] = {"aa","bb","dd","ff","00","zz","cc","ee","gg","hh"};
 /** Strings **/
 void test_strings(FILE *pfile) {
     fprintf(pfile,"===== String\n");
+    uint32_t size = strLen("Casa");
+    fprintf(pfile,"%d\n", size);
     char *a, *b, *c;
     // clone
     fprintf(pfile,"==> Clone\n");
@@ -137,7 +139,7 @@ void test_tree(FILE *pfile) {
     float floatA;
     list_t* l;
     fprintf(pfile,"===== Tree\n");
-    
+
     t = treeNew(TypeInt, TypeString, 1);
     treePrint(t, pfile); fprintf(pfile,"\n");
     treeDelete(t);

@@ -99,6 +99,7 @@ strClone:
   push r12
   push r13
   push r14
+  push r15
 
   mov r13, rdi  ;guardo la posicion donde arranca mi parametro
   ; ya tengo en rdi donde arranca mi string para pasarselo a strLen
@@ -106,17 +107,23 @@ strClone:
   mov rdi, rax ; lo paso a rdi para despues llamar a malloc
   call malloc ;tengo en rax el puntero que apunta al arranque de la memoria resevada
   mov r12, rax ; no quiero modificar rax asi ya lo tengo apuntando al arranque del string que deveuelvo
+  mov r15, [rax]
+  xor r15, r15
+  mov [rax],r15 ;;
 .ciclo:
   cmp byte [r13], 0 ; l ; NOOO FUNCA
   je .fin
   mov r14B, [r13] ;r13 apunta al arranque del string que recibo como parametro
   mov [rax], r14B
+
   inc r13
   inc rax;
   jmp .ciclo
 
 .fin:
   mov rax, r12;
+
+  pop r15
   pop r14
   pop r13
   pop r12
@@ -263,7 +270,7 @@ extern intClone
       ;armo stackframe
       push rbp
       mov rbp,rsp
-      sub rsp,16
+      sub rsp, 8
       push rbx
       push r12
       push r13
@@ -330,7 +337,7 @@ extern intClone
       pop r13
       pop r12
       pop rbx
-      add rsp, 16
+      add rsp, 8
       pop rbp
       ret
 
@@ -351,7 +358,6 @@ docDelete:    ; parece andar, no rompe, pero tiene leaks
   push rbx
   push r12
   push r13
-  push r14
   push r15
 
   mov r12, rdi  ; me guardo el puntero al document en r12
@@ -397,7 +403,6 @@ docDelete:    ; parece andar, no rompe, pero tiene leaks
 .fin:
 
   pop r15
-  pop r14;
   pop r13
   pop r12
   pop rbx
@@ -448,6 +453,7 @@ extern getCompareFunction
 ;armo stackframe
   push rbp
   mov rbp,rsp
+  sub rsp, 8
   push rbx
   push r12
   push r13
@@ -544,6 +550,7 @@ extern getCompareFunction
   pop r13
   pop r12
   pop rbx
+  add rsp, 8
   pop rbp
   ret
 
@@ -729,5 +736,13 @@ treeInsert:
 
 
 
-treePrint:
-ret
+; treePrint:
+; ret
+
+
+
+
+
+
+
+;

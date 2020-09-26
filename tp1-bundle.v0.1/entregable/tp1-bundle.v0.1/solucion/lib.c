@@ -180,7 +180,7 @@ void listRemove(list_t *l, void *data) {
       while (actual->next != NULL) {
           int32_t res_cmp = function_cmp(actual->data, data);
           if (res_cmp == 0) {
-              if (actual->prev = NULL) { // Caso es el primer
+              if (actual->prev == NULL) { // Caso es el primer
 
                   l->first = actual->next;
                   actual->next->prev = NULL;
@@ -295,6 +295,35 @@ list_t* treeGet(tree_t* tree, void* key) {
     }
 
 }
+
+void treePrintAux(treeNode_t* actual, FILE *pfile, type_t type);
+
+void treePrint(tree_t* tree, FILE *pfile){
+
+    // treeNode_t *actual = tree->first;
+    // treePrintAux(actual->left, pfile,tree->typeKey);
+
+}
+
+
+void treePrintAux(treeNode_t* actual, FILE *pfile, type_t type){
+
+    // if(actual->left != NULL){
+    //   treePrintAux(actual->left,pfile,type);
+    // }
+    // // print key del actual
+    // fprintf(pfile,"(");
+    // funcPrint_t* print_func = getPrintFunction(type);
+    // print_func(actual->key,pfile);
+    // fprintf(pfile, ")->");
+    // listPrint(actual->values,pfile);
+    //
+    // if(actual->right != NULL){
+    //   treePrintAux(actual->right,pfile,type);
+    // }
+
+}
+
 
 
 
