@@ -172,12 +172,16 @@ void listAddLast(list_t* l, void* data){
 void listRemove(list_t *l, void *data) {
 
     listElem_t* actual = l->first;
+    listElem_t* actualAux= l->first;
     //printf("%p", &actual);
     funcCmp_t * function_cmp = getCompareFunction(l->type);
 
     if (l->size != 0){
 
       while (actual->next != NULL) {
+
+          actualAux = actual;
+
           int32_t res_cmp = function_cmp(actual->data, data);
           if (res_cmp == 0) {
               if (actual->prev == NULL) { // Caso es el primer
@@ -185,19 +189,27 @@ void listRemove(list_t *l, void *data) {
                   l->first = actual->next;
                   actual->next->prev = NULL;
 
+                  actual = actual->next;
+                  free(actualAux);
+
               } else {
 
                   actual->prev->next = actual->next;
                   actual->next->prev = actual->prev;
 
+                  actual = actual->next;
+                  free(actualAux);
+
               }
 
-              free(actual);
+              //free(actual);
               l->size = l->size - 1;
           }
-
-          actual = actual->next;
+          else{
+            actual = actual->next;
+          }
       }
+
 
       //caso ultimo
       int32_t res_cmp = function_cmp(actual->data, data);
@@ -276,6 +288,8 @@ tree_t* treeNew(type_t typeKey, type_t typeData, int duplicate) {
 }
 list_t* treeGet(tree_t* tree, void* key) {
 
+    // VER QUE EN EL CASO QUE NO ENCUENTRE EL KEY HAY QUE CREAR Y DEVOLVER LA LISTA VACIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
     treeNode_t *actual = malloc(32);
     actual = tree->first;
 
@@ -300,27 +314,32 @@ void treePrintAux(treeNode_t* actual, FILE *pfile, type_t type);
 
 void treePrint(tree_t* tree, FILE *pfile){
 
-    // treeNode_t *actual = tree->first;
-    // treePrintAux(actual->left, pfile,tree->typeKey);
+    if (tree->size != 0) {
+      treeNode_t *actual = tree->first;
+      treePrintAux(actual->left, pfile,tree->typeKey);
+    } else{
+      fprintf(pfile,"\n");
+    }
+
 
 }
 
 
 void treePrintAux(treeNode_t* actual, FILE *pfile, type_t type){
 
-    // if(actual->left != NULL){
-    //   treePrintAux(actual->left,pfile,type);
-    // }
-    // // print key del actual
-    // fprintf(pfile,"(");
-    // funcPrint_t* print_func = getPrintFunction(type);
-    // print_func(actual->key,pfile);
-    // fprintf(pfile, ")->");
-    // listPrint(actual->values,pfile);
-    //
-    // if(actual->right != NULL){
-    //   treePrintAux(actual->right,pfile,type);
-    // }
+    if(actual->left != NULL){
+      treePrintAux(actual->left,pfile,type);
+    }
+    // print key del actual
+    fprintf(pfile,"(");
+    funcPrint_t* print_func = getPrintFunction(type);
+    print_func(actual->key,pfile);
+    fprintf(pfile, ")->");
+    listPrint(actual->values,pfile);
+
+    if(actual->right != NULL){
+      treePrintAux(actual->right,pfile,type);
+    }
 
 }
 

@@ -38,3 +38,9 @@ cmp 0
 cmp 0
 {4, hola, 0.430000}
 {81, Perro, 3.772000}
+===== List
+==> listAdd
+[00,aa,bb,dd,ff]
+[00,aa,bb,dd,ff]
+==> listRemove
+[00,ff]

@@ -663,6 +663,8 @@ treeInsert:
 
 .preAgregado:
 
+  inc qword [r12 + off_tree_size];
+
   ;pedimos memoria
   mov rdi, 32
   call malloc
@@ -721,7 +723,6 @@ treeInsert:
 
 .fin:
 
-  inc qword [r12 + off_tree_size]
 
   pop r15
   pop r14
