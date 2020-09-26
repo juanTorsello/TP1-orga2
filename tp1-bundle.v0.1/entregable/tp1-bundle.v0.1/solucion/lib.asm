@@ -12,9 +12,15 @@
 section .data
 
 ; strPrint
-modo_fopen: db "w", 10
+;modo_fopen: db "w", 10
 string_format: db "%s", 0
 string_NULL: db "NULL",0
+
+;modo_fopen_T: db "w", 10
+tree_inicio_str: db "(", 0
+tree_fin_str: db ")->", 0
+string_format_inicio: db "%s", 0
+string_NULL_T: db "NULL",0
 
 
 
@@ -40,6 +46,8 @@ global listAdd
 global treeInsert
 global treePrint
 
+global treePrintAux
+
 extern malloc
 extern free
 
@@ -54,10 +62,10 @@ floatCmp:
   push rbp
   mov rbp, rsp
 
-  movss xmm1, [rsi]
-  comiss xmm1, [rdi]
+  movss xmm1, [rdi]
+  comiss xmm1, [rsi]
   je .iguales            ; ver como carajo son los saltos
-  jl .menor
+  jb .menor
   mov  eax, -1
   jmp .fin
 .iguales:
@@ -642,7 +650,7 @@ treeInsert:
 .igual: ;en este caso hay que ver si esta permitido repetidos.
 
 
-  cmp qword [r12 + off_tree_duplicates], 0
+  cmp dword [r12 + off_tree_duplicates], 0
   je .set0
   mov rdi,[r12 + off_tree_type_data]
   call getCloneFunction
@@ -735,10 +743,135 @@ treeInsert:
 
 
 
+;void treePrint(tree_t* tree, FILE *pfile){
+
+treePrint:
+;tree_t* -> RDI
+;FILE *  -> RSI
+
+  push rbp
+  mov rbp,rsp
+  sub rsp, 8
+  push r12
+  push r13
+  push r14
+
+  mov r12, rdi ; R12 -> PUNTERO A CENTINELA
+  mov r13, rsi ; R13 -> *FILE
+
+  cmp dword [r12 + off_tree_size], 0  ;caso vacio
+  je .fin
+
+  mov r14, [r12 + off_tree_first_ptr]  ; *actual
+
+  mov rdi, r14
+  mov rsi, r13
+  mov edx, [r12 + off_tree_type_key]
+  call treePrintAux
+
+.fin:
+
+  pop r14
+  pop r13
+  pop r12
+  add rsp, 8
+  pop rbp
+  ret
+
+extern getPrintFunction
+extern listPrint
 
 
-; treePrint:
-; ret
+treePrintAux:
+;treeNode_t* ->RDI
+;FILE -> RSI
+;type_t -> RDX
+
+  push rbp
+  mov rbp,rsp
+  push r12
+  push r13
+  push r14
+  push r15
+
+  mov r12, rdi ; R12 -> *actual
+  mov r13, rsi ; R13 -> *FILE
+  mov r14d, edx ; R15 -> type_t
+
+  cmp qword [r12 + off_nodeTree_left], NULL
+  jne .recuIzq
+  jmp .printNodoActual
+
+
+
+.recuIzq:
+    mov rdi, [r12 + off_nodeTree_left]
+    mov rsi, r13
+    mov edx, r14d
+    call treePrintAux
+
+.printNodoActual:
+
+  mov rdi, r13
+  mov rsi, tree_inicio_str
+  call fprintf              ;imprime primer parentesis
+
+  mov edi, r14d
+  call getPrintFunction     ;ve que tipo hay que imprimir
+  mov rdi, [r12 + off_nodeTree_key]
+  mov rsi, r13
+  call rax                  ;imprime valor key
+
+  mov rdi, r13
+  mov rsi, tree_fin_str
+  call fprintf              ;imprime segundo parentesis
+
+  mov rdi, [r12 + off_nodeTree_values]
+  mov rsi, r13
+  call listPrint           ;imprime lista
+
+  cmp qword [r12 + off_nodeTree_right], NULL
+  je .fin
+
+.recuDer:
+
+    mov rdi, [r12 + off_nodeTree_right]
+    mov rsi, r13
+    mov edx, r14d
+    call treePrintAux
+
+
+.fin:
+
+  pop r15
+  pop r14
+  pop r13
+  pop r12
+  pop rbp
+  ret
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

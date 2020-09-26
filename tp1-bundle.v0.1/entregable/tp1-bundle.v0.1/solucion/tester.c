@@ -48,11 +48,15 @@ char* randomHexString(uint32_t l) {
 
 char* strings[10] = {"aa","bb","dd","ff","00","zz","cc","ee","gg","hh"};
 
+extern int32_t floatCmp(float* a,float* b);
+
+
+
+
 /** Strings **/
 void test_strings(FILE *pfile) {
+
     fprintf(pfile,"===== String\n");
-    uint32_t size = strLen("Casa");
-    fprintf(pfile,"%d\n", size);
     char *a, *b, *c;
     // clone
     fprintf(pfile,"==> Clone\n");
