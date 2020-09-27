@@ -18,7 +18,7 @@ if [ $? -ne 0 ]; then
   echo "ERROR: No se encuentra valgrind."
   exit 1
 fi
-valgrind --show-reachable=yes --leak-check=full --track-origins=yes --error-exitcode=1 ./tester
+valgreen --show-reachable=yes --leak-check=full --track-origins=yes --error-exitcode=1 ./tester
 
 
 echo " "

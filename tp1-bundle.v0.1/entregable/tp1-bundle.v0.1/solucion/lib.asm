@@ -425,6 +425,9 @@ docDelete:    ; parece andar, no rompe, pero tiene leaks
   mov rdi, [r12 + off_doc_values]
   call free
 
+  mov rdi, r12
+  call free
+
   ;delete doc count:
   xor r12, r12 ; limpio por las dudas el doc_count
 
@@ -496,7 +499,7 @@ extern getCompareFunction
   mov r14, rsi ; sacamos la data de rsi
 
 ; new Node:
-  mov rdi, 24
+  mov edi, 24
   call malloc
   mov rbx, rax ; guardamos en rbx la memoria solicitada
 
@@ -517,7 +520,7 @@ extern getCompareFunction
   mov rdi, [r15 + off_nodeList_data]
 
   mov rsi, r14 ; el valor que recibimos por paramtro
-  call rax   ; en rax nos quedo 1, 0 o -1
+  call rax   ; en eax nos quedo 1, 0 o -1
 
   cmp eax, 0
   jle .agregarIzq ;
