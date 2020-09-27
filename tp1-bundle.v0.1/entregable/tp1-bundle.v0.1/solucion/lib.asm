@@ -464,7 +464,7 @@ extern getCompareFunction
 
 ; filtramos caso vacio
 
-  cmp qword [r12 + off_list_size], NULL
+  cmp dword [r12 + off_list_size], NULL
   je .casoVacio
 
   mov r15, [r12 + off_list_first_ptr] ;r15 -> puntero a first de la lista
@@ -472,7 +472,7 @@ extern getCompareFunction
 .ciclo:
 
   ;comparar
-  mov rdi, [r12 + off_list_type]
+  mov edi, [r12 + off_list_type]
   call getCompareFunction
 
   mov rdi, [r15 + off_nodeList_data]
@@ -533,7 +533,7 @@ extern getCompareFunction
 
 
   mov [rbx + off_nodeList_data] , r14
-  inc qword [r12 + off_list_size]  ; incrementamos el size de la lista
+  inc dword [r12 + off_list_size]  ; incrementamos el size de la lista
 
   pop r15
   pop r14
@@ -585,7 +585,7 @@ treeInsert:
   mov [rbp - 16], rdx ; [rbp - 16] -> PUNTERO A DATA (significado)
 
   ;ver si es primer elemento
-  mov qword [rbp - 24], 0  ; flag Agregar Primero
+  mov dword [rbp - 24], 0  ; flag Agregar Primero
   cmp dword [r12 + off_tree_size], 0
   je .preAgregado
 
@@ -598,7 +598,7 @@ treeInsert:
   call getCompareFunction
 
   mov rdi, [r13 + off_nodeTree_key] ; el elemento del tree
-  mov rsi, [rbp - 8]                ; el valor que recibimos por paramtro
+  mov rsi, [rbp - 8]                ; el valor que recibimos por parametro
 
   call rax                          ; 1 si el parametro (rsi) es mas grande
 
@@ -610,7 +610,7 @@ treeInsert:
 .masGrande:
 
   cmp qword [r13 + off_nodeTree_right], NULL
-  mov qword [rbp - 24], 1  ; flag Agregar Derecha
+  mov dword [rbp - 24], 1  ; flag Agregar Derecha
   je .preAgregado
 
   mov r13, [r13 + off_nodeTree_right]
@@ -619,7 +619,7 @@ treeInsert:
 .masChico:
 
   cmp qword [r13 + off_nodeTree_left], NULL
-  mov qword [rbp - 24], -1  ; flag Agregar Izquierda
+  mov dword [rbp - 24], -1  ; flag Agregar Izquierda
   je .preAgregado
 
   mov r13, [r13 + off_nodeTree_left]
@@ -631,7 +631,7 @@ treeInsert:
 
   cmp dword [r12 + off_tree_duplicates], 0
   je .set0
-  mov rdi,[r12 + off_tree_type_data]
+  mov edi,[r12 + off_tree_type_data]
   call getCloneFunction
   mov rdi, [rbp - 16] ; puntero a data
   call rax
@@ -642,7 +642,7 @@ treeInsert:
   jmp .fin
 
 .set0:
-  mov rax, 0
+  mov eax, 0
   jmp .fin
 
 ;por el momento terminado
@@ -650,22 +650,22 @@ treeInsert:
 
 .preAgregado:
 
-  inc qword [r12 + off_tree_size];
+  inc dword [r12 + off_tree_size];
 
   ;pedimos memoria
-  mov rdi, 32
+  mov edi, 32
   call malloc
   mov rbx, rax        ; RBX -> PUNTERO A MEMORIA SOLICITADA
 
   ;clonamos la key
-  mov rdi,[r12 + off_tree_type_key]
+  mov edi,[r12 + off_tree_type_key]
   call getCloneFunction
   mov rdi, [rbp - 8]  ;puntero a data
   call rax            ;clonamos key
   mov r14, rax        ;R14 -> KEY CLONADA
 
   ;clonamos la data
-  mov rdi,[r12 + off_tree_type_data]
+  mov edi,[r12 + off_tree_type_data]
   call getCloneFunction
   mov rdi, [rbp - 16] ; puntero a data
   call rax            ; clonamos data
@@ -673,7 +673,7 @@ treeInsert:
 
   ;insertamos datos clonados
   mov [rbx + off_nodeTree_key], r14     ; insertamos key
-  mov rdi , [r12 + off_tree_type_data]  ;pasamos tipo de list
+  mov edi , [r12 + off_tree_type_data]  ;pasamos tipo de list
   call listNew
 
   ; setear parametro de listAdd
@@ -687,8 +687,8 @@ treeInsert:
   mov qword [rbx + off_nodeTree_right], NULL
 
   ;vemos a donde seguimos
-  cmp qword [rbp - 24], 0
-  mov rax, 1                ; return 1;
+  cmp dword [rbp - 24], 0
+  mov eax, 1                ; return 1;
   je .agregarPrimero
   jl .agregarIzq
 
@@ -828,23 +828,6 @@ treePrintAux:
   pop r12
   pop rbp
   ret
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
