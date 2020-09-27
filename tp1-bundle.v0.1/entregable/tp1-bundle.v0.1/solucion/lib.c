@@ -135,7 +135,7 @@ int32_t docCmp(document_t* a, document_t* b){
 }
 void docPrint(document_t* a, FILE *pFile){
     fprintf(pFile, "{");
-    uint32_t largo = a->count; 
+    uint32_t largo = a->count;
     for(int i=0; i < a->count-1 ; i++ ) {
         funcPrint_t* fp = getPrintFunction(a->values[i].type);
         fp(a->values[i].data, pFile);
@@ -191,6 +191,7 @@ void listRemove(list_t *l, void *data) {
                   actual->next->prev = NULL;
 
                   actual = actual->next;
+                  free(actualAux->data);
                   free(actualAux);
 
               } else {
@@ -199,6 +200,7 @@ void listRemove(list_t *l, void *data) {
                   actual->next->prev = actual->prev;
 
                   actual = actual->next;
+                  free(actualAux->data);
                   free(actualAux);
 
               }
@@ -224,7 +226,7 @@ void listRemove(list_t *l, void *data) {
               l->last = actual->prev;
               actual->prev->next = NULL;
           }
-
+          free(actual->data);
           free(actual);
           l->size = l->size - 1;
       }
