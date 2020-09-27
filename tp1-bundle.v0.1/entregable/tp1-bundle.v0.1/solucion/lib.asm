@@ -293,12 +293,12 @@ extern intClone
       mov r13, [r13 + off_doc_values]; PUNTERO AL VALUE ORIGINAL
 
       ; largo del vector
-      mov rcx, [rdi + off_count]
-      mov [rbp - 8], rcx
+      mov ecx, [rdi + off_count]
+      mov [rbp - 8], ecx
 
 
       ;armar el document_t nuevo
-      mov rdi, 16 ;tamaño del bloque
+      mov edi, 16 ;tamaño del bloque
       call malloc
       mov r12, rax             ;PUNTERO A NUEVO DOCUMENTO -> R12
                                ;0x408670 memoria de nuevo doc
@@ -308,10 +308,10 @@ extern intClone
       je .casoVacio
 
       ; creamos arreglo
-      mov  rax , [rbp - 8]
-      mov r8, 16 ; el tamaño de cada elemento del vector
-      mul r8 ; mul  cx        ; supuestamente hace rax = r8 * rax
-      mov rdi, rax ; paso el document_size * 16 a rdi para el malloc
+      mov  eax , [rbp - 8]
+      mov r8d, 16 ; el tamaño de cada elemento del vector
+      mul r8d ; mul  cx        ; supuestamente hace rax = r8 * rax
+      mov edi, eax ; paso el document_size * 16 a rdi para el malloc
       call malloc
       mov r14,rax ; PUNTERO AL NUEVO VECTOR DE DOCUMENTOS -> R14
                   ; 0x408690 memoria de nuevo values
@@ -320,25 +320,25 @@ extern intClone
       ; Ya tenemos toda la memoria solicitada
       ; volcado de data a document:
 
-      mov rcx, [rbp - 8]
-      mov [r12 + off_count], rcx
+      mov ecx, [rbp - 8]
+      mov [r12 + off_count], ecx
       mov [r12 + off_doc_values], r14
 
       ; volcado de data a los document elem:
       xor r15, r15 ; RCX contador del vector (la "i" de nuestro querido for)
       xor rbx, rbx
     .ciclo:
-      cmp r15 , [rbp - 8]
+      cmp r15d , [rbp - 8]
       je .fin
-      mov r9, [r13 + rbx + off_type] ; pisamos el que antes era el largo
-      mov [r14  + rbx + off_type], r9
-      mov rdi, r9
+      mov r9d, [r13 + rbx + off_type] ; pisamos el que antes era el largo
+      mov [r14  + rbx + off_type], r9d
+      mov edi, r9d
       call getCloneFunction
       mov rdi, [r13 + rbx + off_data_ptr]
       call rax
       mov [r14 + rbx + off_data_ptr], rax
       add rbx, 16
-      inc r15
+      inc r15d
       jmp .ciclo
       ;r9   : auxiliar que tiene el tipo del dato
       ;r12  : * al nuevo documento
@@ -348,7 +348,7 @@ extern intClone
 
     .casoVacio:
 
-    mov rdi, 16
+    mov edi, 16
     call malloc
     mov r14,rax
 
