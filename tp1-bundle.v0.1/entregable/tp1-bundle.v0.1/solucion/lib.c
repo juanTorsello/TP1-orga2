@@ -135,6 +135,7 @@ int32_t docCmp(document_t* a, document_t* b){
 }
 void docPrint(document_t* a, FILE *pFile){
     fprintf(pFile, "{");
+    uint32_t largo = a->count; 
     for(int i=0; i < a->count-1 ; i++ ) {
         funcPrint_t* fp = getPrintFunction(a->values[i].type);
         fp(a->values[i].data, pFile);

@@ -27,6 +27,8 @@ string_NULL_T: db "NULL",0
 
 section .text
 
+%define NULL 0
+
 global floatCmp
 global floatClone
 global floatDelete
@@ -113,22 +115,22 @@ strClone:
   ; ya tengo en rdi donde arranca mi string para pasarselo a strLen
   call strLen  ; devuelve en rax el la cantidad de bytes que tengo que reservar
   mov rdi, rax ; lo paso a rdi para despues llamar a malloc
+  inc rdi ; uno mas para el 0 final
   call malloc ;tengo en rax el puntero que apunta al arranque de la memoria resevada
   mov r12, rax ; no quiero modificar rax asi ya lo tengo apuntando al arranque del string que deveuelvo
-  mov r15, [rax]
-  xor r15, r15
-  mov [rax],r15 ;;
-.ciclo:
-  cmp byte [r13], 0 ; l ; NOOO FUNCA
-  je .fin
-  mov r14B, [r13] ;r13 apunta al arranque del string que recibo como parametro
-  mov [rax], r14B
 
+.ciclo:
+  cmp byte [r13], 0
+  je .fin
+  mov byte r14b, [r13] ;r13 apunta al arranque del string que recibo como parametro
+  mov byte [rax], r14b
   inc r13
-  inc rax;
+  inc rax
   jmp .ciclo
 
 .fin:
+
+  mov byte [rax], 0 ; le agregamos el 0 final
   mov rax, r12;
 
   pop r15
@@ -138,6 +140,7 @@ strClone:
   pop  rbp
   ret
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 
 
@@ -223,7 +226,7 @@ strDelete:
     push r12
     push r13
 
-    mov r12,rdi    ; R8 aux con el char* a
+    mov r12,rdi    ; R12 aux con el char* a
     mov rdi,rsi
     mov r13, rsi
     ;mov rsi, modo_fopen
@@ -231,7 +234,7 @@ strDelete:
     ; ; fopen toma rdi: FILE, rsi: modo_fopen
     ; call fopen
     mov rsi, string_format
-    cmp byte [r12],0
+    cmp byte [r12], 0
     je .NULL
     mov rdx,r12
     jmp .fprintf
@@ -299,8 +302,12 @@ extern intClone
       call malloc
       mov r12, rax             ;PUNTERO A NUEVO DOCUMENTO -> R12
                                ;0x408670 memoria de nuevo doc
-      ; creamos arreglo
 
+      ;salvamos caso vacio
+      cmp dword [r13 + off_count], 0
+      je .casoVacio
+
+      ; creamos arreglo
       mov  rax , [rbp - 8]
       mov r8, 16 ; el tamaño de cada elemento del vector
       mul r8 ; mul  cx        ; supuestamente hace rax = r8 * rax
@@ -337,6 +344,20 @@ extern intClone
       ;r12  : * al nuevo documento
       ;r13  : * al values
       ;r15  : contador de ciclos
+      ;jmp .fin
+
+    .casoVacio:
+
+    mov rdi, 16
+    call malloc
+    mov r14,rax
+
+    mov dword [r12 + off_count], 0
+    mov [r12 + off_doc_values], r14
+    mov dword [r14 + off_type], 0
+    mov qword [r14 + off_doc_values], NULL
+
+
     .fin:
       mov rax, r12
 
@@ -440,7 +461,7 @@ docDelete:    ; parece andar, no rompe, pero tiene leaks
 
 ;*** List ***
 
-%define NULL 0
+
 %define off_list_type 0
 %define off_list_size 4
 %define off_list_first_ptr 8
@@ -588,8 +609,6 @@ treeInsert:
 ;tree_t* -> RDI
 ;void* key -> RSI
 ;void* data -> RDX
-
-
 ;armo stackframe
   push rbp
   mov rbp,rsp
@@ -603,7 +622,6 @@ treeInsert:
   mov r12, rdi        ; R12        -> PUNTERO A CENTINELA TREE
   mov [rbp - 8] , rsi ; [rbp - 8]  -> PUNTERO A KEY
   mov [rbp - 16], rdx ; [rbp - 16] -> PUNTERO A DATA (significado)
-
 
   ;ver si es primer elemento
   mov qword [rbp - 24], 0  ; flag Agregar Primero
