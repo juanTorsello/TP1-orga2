@@ -86,7 +86,7 @@ floatClone:
   mov rbp,rsp
 
   movss xmm0, [rdi]
-  mov rdi, 4
+  mov edi, 4
   call malloc
   movss [rax], xmm0
   ;fin
@@ -114,8 +114,8 @@ strClone:
   mov r13, rdi  ;guardo la posicion donde arranca mi parametro
   ; ya tengo en rdi donde arranca mi string para pasarselo a strLen
   call strLen  ; devuelve en rax el la cantidad de bytes que tengo que reservar
-  mov rdi, rax ; lo paso a rdi para despues llamar a malloc
-  inc rdi ; uno mas para el 0 final
+  mov edi, eax ; lo paso a rdi para despues llamar a malloc
+  inc edi ; uno mas para el 0 final
   call malloc ;tengo en rax el puntero que apunta al arranque de la memoria resevada
   mov r12, rax ; no quiero modificar rax asi ya lo tengo apuntando al arranque del string que deveuelvo
 
@@ -137,11 +137,9 @@ strClone:
   pop r14
   pop r13
   pop r12
-  pop  rbp
+  pop rbp
   ret
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
 
 
 
@@ -182,10 +180,10 @@ strCmp:
   xor r13, r13
   mov r12b, [rdi]  ; copio el char al que apunte rdi de "a"
   mov r13b, [rsi]  ; copio el char al que apunte rsi de "b"
-  cmp r12b, r13b    ; cmp los char
+  cmp byte r12b, r13b    ; cmp los char
   jl .menor
   jg .mayor
-  cmp r12b, 0      ; Si alguno es 0, entonces fin
+  cmp byte r12b, 0      ; Si alguno es 0, entonces fin
   je .iguales
   inc rdi         ; inc rdi para que apunte al siguiente char
   inc rsi         ; inc rsi para que apunte al siguiente char
@@ -197,7 +195,7 @@ strCmp:
   mov eax, -1
   jmp .fin
 .iguales:
-  mov rax, 0
+  mov eax, 0
 .fin:
 
   pop r13
@@ -229,10 +227,7 @@ strDelete:
     mov r12,rdi    ; R12 aux con el char* a
     mov rdi,rsi
     mov r13, rsi
-    ;mov rsi, modo_fopen
 
-    ; ; fopen toma rdi: FILE, rsi: modo_fopen
-    ; call fopen
     mov rsi, string_format
     cmp byte [r12], 0
     je .NULL
@@ -243,11 +238,10 @@ strDelete:
     mov rdx, string_NULL
 
   .fprintf:
-    ;fprintf(fp, "%s", r8);
+    ; fprintf(fp, "%s", r8);
     ; rdi: FILE, rsi: string_format, rdx: char* a (R8)
     call fprintf
     mov rdi,r13
-    ;call fclose ; RDI: FILE ; NO ANDA, preguntar si va aca o en C
 
   .fin:
     ; Stack Frame (Limpieza)
@@ -262,9 +256,6 @@ strDelete:
 
 ;*** Document ***
 ; document_t* docClone(document_t* a)
-; Genera una copia del documento junto con todos sus datos. Para esto, debe llamar a las funciones
-; clone de cada uno de los tipos de los datos que integran el documento.
-; posibles cosos: none, int, float, string, document
 
 extern getCloneFunction
 extern intClone
@@ -376,8 +367,6 @@ extern intDelete
 
 docDelete:    ; parece andar, no rompe, pero tiene leaks
 ; void docDelete(document_t* a)
-; Borra un documento, esto incluye borrar todos los datos que contiene utilizando las funciones delete
-; asociadas a cada tipo de los datos.
 
 ;IN: document_t* a -> RDI
 
@@ -391,32 +380,23 @@ docDelete:    ; parece andar, no rompe, pero tiene leaks
 
   mov r12, rdi  ; me guardo el puntero al document en r12
   mov r13, [rdi + off_doc_values] ; * a values
-  mov rbx, [rdi + off_count] ; auxiliarmente r9 = document.count
-  xor r15, r15  ; limpio iterador del ciclo
-
+  mov ebx, [rdi + off_count] ; auxiliarmente r9 = document.count
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;xor r15, r15  ; limpio iterador del ciclo
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 .ciclo:
-  cmp r15, rbx
+  cmp r15d, ebx
   je .doc_t_delete
 
   ; value delete:
   ; borro el contenido (value)
-  mov rdi, [r13 + off_type] ; rdi = type_t
+  mov edi, [r13 + off_type] ; rdi = type_t
   call getDeleteFunction
   mov rdi, [r13 + off_data_ptr] ; rdi = * data
   call rax  ; call al delete correspondiente
 
-  ; borro el tipo (value)    ; creo que el tipo este vendria a ser int, sino por las dudas
-                             ; se puede repetir lo mismo de antes y llamar a rax
-  ;;mov rdi, [r13 + off_type] ; rdi = * type_t
-  ;;call intDelete
-  ; call getDeleteFunction
-  ; mov rdi, [r13 + off_type] ; rdi = * type_t
-  ; call rax  ; call al delete correspondiente
-  ;;;;xor r13, r13
-
   ; avanzo
-  inc r15 ; avanzo la i
-  add r13, off_doc_node  ; avanzo el puntero al siguiente nodo (r13 + 16)
+  inc r15d ; i++
+  add r13, off_doc_node  ; r13 = r13 + 16
   jmp .ciclo
 
 .doc_t_delete:
@@ -428,10 +408,6 @@ docDelete:    ; parece andar, no rompe, pero tiene leaks
   mov rdi, r12
   call free
 
-  ;delete doc count:
-  xor r12, r12 ; limpio por las dudas el doc_count
-
-
 .fin:
 
   pop r15
@@ -440,24 +416,6 @@ docDelete:    ; parece andar, no rompe, pero tiene leaks
   pop rbx
   pop rbp
   ret
-
-  ; r12  : * document in
-  ; r15  : contador "i" del ciclo
-
-  ; ? habra que hacer un delete del vector tambien?
-
-
-; idea:
-;
-; recorrer values e ir borrando
-
-; Finalmente borrar:
-    ;document_t:
-      ; int count;
-      ; docElem_t* values;
-
-
-
 
 
 
